@@ -1,5 +1,6 @@
-1. API Call
-3. Mehrere Stationen
-4. Style der Anzeige
-5. Anhand von .config verschiedene Stationsangaben ermöglichen
-6. Dynamisch Stationen ermitteln durch Location
+1. Mehrere Stationen
+2. Style der Anzeige
+3. Anhand von .config verschiedene Stationsangaben ermöglichen
+4. Dynamisch Stationen ermitteln durch Location
+5. Nur ca. 5 Fahrten pro Haltestelle
+6. Direction limiteren

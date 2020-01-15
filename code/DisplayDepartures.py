@@ -1,27 +1,35 @@
-import datetime
+from datetime import datetime, timezone
 import TripRepository
 from Models.TripListModel import TripListModel
-from appJar import gui
+from appJar import gui, appjar
 
 app = gui()
 _tripListModel = TripRepository.GetRealTimeData()
 
 def UpdateDepartures():
-    for station in _tripListModel.Trips:
-        for tripModel in _tripListModel.Trips[station]:
-            countdown = (tripModel.departure - datetime.timedelta(0,1)) - datetime.datetime.now()
+    _tripListModel = TripRepository.GetRealTimeData()
+    for tripModel in _tripListModel.Trips[:5]:
+        countdown = tripModel.departure - datetime.now(timezone.utc)
+        try:
             app.setLabel(f"{tripModel.tripId}-departure", countdown.total_seconds() // 60)
+        except appjar.ItemLookupError:
+            row = app.getRow()
+            app.addLabel(tripModel.tripId, tripModel.direction, row, 0)
+            app.addLabel(f"{tripModel.tripId}-departure", countdown.total_seconds() // 60, row, 1)
+        if(countdown.total_seconds() < 0):
+            app.removeLabel(tripModel.tripId)
+            app.removeLabel(f"{tripModel.tripId}-departure")
+
 
 def PrintDepartures():
-    for station in _tripListModel.Trips:
-        app.addLabel(station, station, colspan=2)
-        app.setLabelBg(station, "red")
-        for tripModel in _tripListModel.Trips[station]:
-            countdown = tripModel.departure - datetime.datetime.now()
-            # add & configure widgets - widgets get a name, to help referencing them later
-            row = app.getRow()
-            app.addLabel(tripModel.tripId, tripModel.tripNr, row, 0)
-            app.addLabel(f"{tripModel.tripId}-departure", countdown.total_seconds() // 60, row, 1)
+    app.addLabel("Scheibenstr.", "Scheibenstr.", colspan=2)
+    app.setLabelBg("Scheibenstr.", "red")
+    for tripModel in _tripListModel.Trips[:5]:
+        countdown = tripModel.departure - datetime.now(timezone.utc)
+        
+        row = app.getRow()
+        app.addLabel(tripModel.tripId, tripModel.direction, row, 0)
+        app.addLabel(f"{tripModel.tripId}-departure", countdown.total_seconds() // 60, row, 1)
 
     # start the GUI
     app.registerEvent(UpdateDepartures)
