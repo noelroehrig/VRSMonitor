@@ -1,11 +1,16 @@
 from Models.TripListModel import TripListModel
 from Models.TripModel import TripModel
 import requests
+import os
+import configparser
 import xml.etree.ElementTree as ET
 
+_config =  configparser.ConfigParser()
+_config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), "configure", "config.ini"))
+
 def GetRequestXml():
-    url = "https://apitest.vrsinfo.de:4443/vrs/cgi/service/ass"
-    payload = "<?xml version=\"1.0\" encoding=\"ISO-8859-15\"?>\r\n<Request>\r\n\t<StopTimetable>\r\n\t\t<Location>\r\n\t\t\t<Classes>\r\n\t\t\t<Stop>\r\n\t\t\t\t<ASSID>337</ASSID>\r\n\t\t\t</Stop>\r\n\t\t\t</Classes>\r\n\t\t</Location>\r\n\t\t<SearchTime SearchDirection=\"Departure\"/>\r\n\t\t<SearchInterval>\r\n\t\t\t<Size>3600</Size>\r\n\t\t</SearchInterval>\r\n\t\t<Product>LongDistanceTrains</Product>\r\n\t\t<Product>RegionalTrains</Product>\r\n\t\t<Product>SuburbanTrains</Product>\r\n\t\t<Product>Underground</Product>\r\n\t\t<Product>LightRail</Product>\r\n\t\t<Product>Bus</Product>\r\n\t\t<Product>CommunityBus</Product>\r\n\t\t<Product>OnDemandServices</Product>\r\n\t\t<Product>Boat</Product>\r\n\t\t<Product>RailReplacementServcies</Product>\r\n\t\t<SupplementalPayment>false</SupplementalPayment>\r\n\t\t<Direction>2</Direction>\r\n\t\t<DisabledAccessRequired/>\r\n\t\t<Options>\r\n\t\t\t<Output>\r\n\t\t\t<SRSName>urn:adv:crs:ETRS89_UTM32</SRSName>\r\n\t\t\t</Output>\r\n\t\t</Options>\r\n\t</StopTimetable>\r\n</Request>"
+    url = _config["ServerSettings"]["serverUrl"]
+    payload = f'<?xml version="1.0" encoding="ISO-8859-15"?><Request><StopTimetable><Location><Classes><Stop><ASSID>{_config["StationSettings"]["stationId"]}</ASSID></Stop></Classes></Location><SearchTime SearchDirection="Departure"/><SearchInterval><Size>3600</Size></SearchInterval><Options><Output><SRSName>urn:adv:crs:ETRS89_UTM32</SRSName></Output></Options></StopTimetable></Request>'
     headers = {
     'Content-Type': 'application/xml'
     }
@@ -15,9 +20,12 @@ def GetRequestXml():
 def ParseXmlToModel(xml):
     tripListModel = TripListModel()
     for child in xml.iter("StopEvent"):
-        tripId = child.find("VehicleJourney").find("ID").text
-        tripDirection = child.find("VehicleJourney").find("Direction").text
-        tripArrival = child.find("ArrivalTime").text
+        vehicleJourney = child.find("VehicleJourney")
+        if(vehicleJourney.find("DirectionNo").text != _config["StationSettings"]["direction"]):
+            continue
+        tripId = vehicleJourney.find("ID").text
+        tripDirection = vehicleJourney.find("Direction").text
+        tripArrival = "2020-01-17T12:11:00+01:00" if child.find("ArrivalTime") is None else child.find("ArrivalTime").text
         tripDeparture = child.find("DepartureTime").text
         tripListModel.Trips.append(TripModel(tripId, tripDirection, tripArrival, tripDeparture))
 
