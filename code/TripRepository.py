@@ -2,11 +2,13 @@ from Models.TripListModel import TripListModel
 import Connection.RequestHandler as RequestHandler
 from Models.TripModel import TripModel
 
+_direction = RequestHandler._config["StationSettings"]["direction"]
+
 def ParseXmlToModel(xml):
     tripListModel = TripListModel()
     for child in xml.iter("StopEvent"):
         vehicleJourney = child.find("VehicleJourney")
-        if(vehicleJourney.find("DirectionNo").text != RequestHandler._config["StationSettings"]["direction"]):
+        if(vehicleJourney.find("DirectionNo").text != _direction and _direction != "0"):
             continue
         tripId = vehicleJourney.find("ID").text
         tripDirection = vehicleJourney.find("Direction").text

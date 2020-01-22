@@ -21,8 +21,9 @@ def ColorizeDepartures(countdown, tripModel):
 
 def AddDeparture(countdown, tripModel):
     row = app.getRow()
-    app.addLabel(tripModel.tripId, tripModel.direction, row, 0)
-    app.addLabel(f"{tripModel.tripId}-departure", f"{'{0:.1f}'.format(countdown.total_seconds() / 60)} min", row, 1)
+    app.addHorizontalSeparator(row,0,2)
+    app.addLabel(tripModel.tripId, tripModel.direction, row+1, 0)
+    app.addLabel(f"{tripModel.tripId}-departure", f"{'{0:.1f}'.format(countdown.total_seconds() / 60)} min", row+1, 1)
 
 def UpdateStation(tripListModel):
     for tripModel in tripListModel.Trips[:5]:
